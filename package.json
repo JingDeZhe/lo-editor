@@ -8,6 +8,9 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "svg-sprite-loader": "^5.0.0",
+    "tiptap": "^1.30.0",
+    "tiptap-extensions": "^1.33.2",
     "vue": "^2.6.11"
   },
   "devDependencies": {
