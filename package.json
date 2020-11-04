@@ -2,7 +2,7 @@
   "name": "lo-editor",
   "version": "0.1.0",
   "private": false,
-  "description": "一个简单的富文本编辑组件，基于Vue下富文本编辑器Tiptap",
+  "description": "A simple rich text editing component based on Tiptap, a rich text editor under Vue",
   "main": "lib/lo-editor.umd.min.js",
   "license": "MIT",
   "author": "lotusloli",

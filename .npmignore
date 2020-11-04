@@ -9,6 +9,10 @@ babel.config.js
 *.map
 *.html
 
+lib/*
+lib/.*
+!lib/*.umd.min.js
+
 # local env files
 .env.local
 .env.*.local
