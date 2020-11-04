@@ -6,6 +6,7 @@
   "main": "lib/lo-editor.umd.min.js",
   "license": "MIT",
   "author": "lotusloli",
+  "repository": "git@github.com:JingDeZhe/lo-editor.git",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
