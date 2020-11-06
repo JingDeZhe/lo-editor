@@ -1,12 +1,12 @@
 {
   "name": "lo-editor",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "private": false,
   "description": "A simple rich text editing component based on Tiptap, a rich text editor under Vue",
   "main": "lib/lo-editor.umd.min.js",
   "license": "MIT",
   "author": "lotusloli",
-  "repository": "git@github.com:JingDeZhe/lo-editor.git",
+  "repository": "github.com/JingDeZhe/lo-editor",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",

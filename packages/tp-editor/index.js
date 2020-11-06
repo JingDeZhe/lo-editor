@@ -1,3 +1,4 @@
+import '../icons';
 import LoEditor from './LoEditor.vue';
 
 LoEditor.install = function (Vue) {

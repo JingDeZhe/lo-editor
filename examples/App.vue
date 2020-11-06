@@ -1,6 +1,10 @@
 <template>
 	<div id="app">
-		<lo-editor v-model="content" class="lo-editor"></lo-editor>
+		<lo-editor
+			v-model="content"
+			class="lo-editor"
+			:fontColors="fontColors"
+		></lo-editor>
 	</div>
 </template>
 
@@ -9,7 +13,9 @@ export default {
 	name: "App",
 	data() {
 		return {
-			content: "<p>dsdsd</p>",
+			content: "",
+			fontSizes: ["10px", "20px", "30px", "40px", "50px"],
+			fontColors: ["#0b1013","#0f2540","#08192d","#005caf","#0b346e","#7b90d2"],
 		};
 	},
 };

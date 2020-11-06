@@ -1,10 +1,18 @@
 <template>
 	<div class="editor">
+		<div class="float-modal" @click="resetFloats" v-show="showFloatModal"></div>
+		<div
+			class="mode-edit"
+			@click="isPreview = false"
+			v-if="mode === 'VIEW' || isPreview"
+		>
+			<icon icon-class="edit"></icon>
+		</div>
 		<div class="editor-tools">
 			<editor-menu-bar
 				:editor="editor"
 				v-slot="{ commands, isActive }"
-				v-if="mode != 'VIEW'"
+				v-if="mode != 'VIEW' && !isPreview"
 			>
 				<div class="menubar">
 					<button @click="commands.undo">
@@ -18,6 +26,175 @@
 						</abbr>
 					</button>
 
+					<span class="divide"></span>
+					<button
+						class="float-parent menubar__button"
+						@click="toggleFloat('fontFamily')"
+					>
+						<abbr :title="i18n.editor.fontFamily">
+							<icon icon-class="font-family" />
+						</abbr>
+						<div class="float select-menu" v-if="floats.fontFamily">
+							<div
+								class="menu-item"
+								@click="commands.fontFamily({ fontFamily: 'initial' })"
+								style="font-family: initial"
+							>
+								默认
+							</div>
+							<div
+								class="menu-item"
+								@click="commands.fontFamily({ fontFamily: 'SimSun' })"
+								style="font-family: SimSun"
+							>
+								宋体
+							</div>
+							<div
+								class="menu-item"
+								@click="commands.fontFamily({ fontFamily: 'FangSong' })"
+								style="font-family: FangSong"
+							>
+								仿宋
+							</div>
+							<div
+								class="menu-item"
+								@click="commands.fontFamily({ fontFamily: 'SimHei' })"
+								style="font-family: SimHei"
+							>
+								黑体
+							</div>
+							<div
+								class="menu-item"
+								@click="commands.fontFamily({ fontFamily: 'KaiTi' })"
+								style="font-family: KaiTi"
+							>
+								楷体
+							</div>
+						</div>
+					</button>
+					<button
+						class="float-parent menubar__button"
+						@click="toggleFloat('fontSize')"
+					>
+						<abbr :title="i18n.editor.fontSize">
+							<icon icon-class="font-size" />
+						</abbr>
+						<div class="float select-menu" v-if="floats.fontSize">
+							<div
+								class="menu-item"
+								:class="{
+									'is-active': isActive.fontSize({ fontSize: 'initial' }),
+								}"
+								@click="commands.fontSize({ fontSize: 'initial' })"
+								style="font-family: initial"
+							>
+								默认
+							</div>
+							<div
+								v-for="size in fontSizes"
+								:key="size"
+								class="menu-item"
+								:class="{ 'is-active': isActive.fontSize({ fontSize: size }) }"
+								@click="commands.fontSize({ fontSize: size })"
+								:style="{ 'font-size': size }"
+							>
+								{{ size }}
+							</div>
+						</div>
+					</button>
+
+					<button
+						class="menubar__button float-parent"
+						@click="toggleFloat('fontColor')"
+					>
+						<abbr :title="i18n.editor.fontColor">
+							<icon icon-class="font-color"></icon>
+						</abbr>
+						<div class="float color-panel" v-if="floats.fontColor">
+							<div
+								class="color-piece"
+								style="background: none"
+								@click="changeFontColor(commands, 'initial')"
+							>
+								<icon icon-class="close"></icon>
+							</div>
+							<div
+								class="color-piece"
+								v-for="color in fontColors"
+								:key="color"
+								:style="{ background: color }"
+								@click="changeFontColor(commands, color)"
+							></div>
+						</div>
+					</button>
+					<button
+						class="menubar__button float-parent"
+						@click="toggleFloat('bkgColor')"
+					>
+						<abbr :title="i18n.editor.bgColor">
+							<icon icon-class="background"></icon>
+						</abbr>
+						<div class="float color-panel" v-if="floats.bkgColor">
+							<div
+								class="color-piece"
+								style="background: none"
+								@click="changeBkgColor(commands, 'none')"
+							>
+								<icon icon-class="close"></icon>
+							</div>
+							<div
+								class="color-piece"
+								v-for="color in bgColors"
+								:key="color"
+								:style="{ background: color }"
+								@click="changeBkgColor(commands, color)"
+							></div>
+						</div>
+					</button>
+					<button
+						class="menubar__button"
+						:class="{
+							'is-active': isActive.paragraph({ textAlign: 'left' }),
+						}"
+						@click="commands.paragraph({ textAlign: 'left' })"
+					> 
+						<abbr :title="i18n.editor.alignLeft">
+							<icon icon-class="align-left"></icon>
+						</abbr>
+					</button>
+					<button
+						class="menubar__button"
+						:class="{
+							'is-active': isActive.paragraph({ textAlign: 'center' }),
+						}"
+						@click="commands.paragraph({ textAlign: 'center' })"
+					>
+						<abbr :title="i18n.editor.alignCenter">
+							<icon icon-class="align-center"></icon>
+						</abbr>
+					</button>
+					<button
+						class="menubar__button"
+						:class="{
+							'is-active': isActive.paragraph({ textAlign: 'right' }),
+						}"
+						@click="commands.paragraph({ textAlign: 'right' })"
+					>
+						<abbr :title="i18n.editor.alignRight">
+							<icon icon-class="align-right"></icon>
+						</abbr>
+					</button>
+					<button
+						class="menubar__button"
+						:class="{
+							'is-active': isActive.paragraph({ textAlign: 'justify' }),
+						}"
+						@click="commands.paragraph({ textAlign: 'justify' })"
+					>
+						<abbr :title="i18n.editor.alignJustify">
+							<icon icon-class="align-justify"></icon>
+						</abbr>
+					</button>
 					<span class="divide"></span>
 
 					<button
@@ -163,25 +340,28 @@
 							</abbr>
 						</button>
 						<button
-							class="menubar__button table-delete"
-							@click="showTableFloat = !showTableFloat"
+							class="menubar__button float-parent"
+							@click="toggleFloat('deleteTable')"
 						>
 							<abbr :title="i18n.editor.deleteTable">
 								<icon icon-class="表格删除" />
 							</abbr>
-							<div class="float" v-if="showTableFloat">
-								<button class="menubar__button" @click="commands.deleteRow">
+							<div
+								class="select-menu table-delete float"
+								v-if="floats.deleteTable"
+							>
+								<div class="menu-item" @click="commands.deleteRow">
 									<icon icon-class="删除行" />
 									<span class="desc">{{ i18n.editor.deleteRow }}</span>
-								</button>
-								<button class="menubar__button" @click="commands.deleteColumn">
+								</div>
+								<div class="menu-item" @click="commands.deleteColumn">
 									<icon icon-class="删除列" />
 									<span class="desc">{{ i18n.editor.deleteCol }}</span>
-								</button>
-								<button class="menubar__button" @click="commands.deleteTable">
+								</div>
+								<div class="menu-item" @click="commands.deleteTable">
 									<icon icon-class="表格删除" />
 									<span class="desc">{{ i18n.editor.deleteTable }}</span>
-								</button>
+								</div>
 							</div>
 						</button>
 					</span>
@@ -191,9 +371,20 @@
 							<icon icon-class="图片" />
 						</abbr>
 					</label>
-					<button class="menubar__button" @click="toInsertIframe">
+					<button class="menubar__button" @click="toInsertURL('iframe')">
 						<abbr :title="i18n.editor.insertIframe">
 							<icon icon-class="iframe" />
+						</abbr>
+					</button>
+					<button class="menubar__button" @click="toInsertURL('video')">
+						<abbr :title="i18n.editor.insertVedio">
+							<icon icon-class="vedio"></icon>
+						</abbr>
+					</button>
+					<div class="divide"></div>
+					<button class="menubar__button" @click="isPreview = true">
+						<abbr :title="i18n.editor.preview">
+							<icon icon-class="eye"></icon>
 						</abbr>
 					</button>
 					<input
@@ -210,7 +401,7 @@
 			class="menububble"
 			:editor="editor"
 			@hide="hideLinkMenu"
-			v-if="mode !== 'VIEW'"
+			v-if="enableLink && mode !== 'VIEW' && !isPreview"
 			v-slot="{ commands, isActive, getMarkAttrs, menu }"
 		>
 			<div
@@ -263,8 +454,6 @@
 </template>
 
 <script>
-import '../../examples/icons';
-
 import { Editor, EditorContent, EditorMenuBar, EditorMenuBubble } from "tiptap";
 import {
 	Blockquote,
@@ -288,10 +477,16 @@ import {
 } from "tiptap-extensions";
 import Image from "./tpEditor/Image";
 import Iframe from "./tpEditor/Iframe";
+import Vedio from "./tpEditor/Vedio";
 import Strike from "./tpEditor/Strike";
+import FontSize from "./tpEditor/marks/FontSize";
+import FontFamily from "./tpEditor/marks/FontFamily";
+import FontColor from "./tpEditor/marks/FontColor";
+import BkgColor from "./tpEditor/marks/BkgColor";
+import Paragraph from "./tpEditor/marks/Paragraph";
 
 export default {
-  name: 'lo-editor',
+	name: "lo-editor",
 	components: {
 		EditorContent,
 		EditorMenuBar,
@@ -305,11 +500,99 @@ export default {
 		id: String,
 		content: String,
 		mode: String,
+		enableLink: {
+			type: Boolean,
+			default() {
+				return false;
+			},
+		},
+		fontSizes: {
+			type: Array,
+			default() {
+				return ["18px", "24px", "30px"];
+			},
+		},
+		fontColors: {
+			type: Array,
+			default() {
+				return [
+					"#0b1013",
+					"#0f2540",
+					"#08192d",
+					"#005caf",
+					"#0b346e",
+					"#7b90d2",
+					"#261e47",
+					"#113285",
+					"#4e4f97",
+					"#211e55",
+					"#6a4c9c",
+					"#3c2f41",
+					"#3f2b36",
+					"#562e37",
+					"#134857",
+					"#126e82",
+					"#0eb0c9",
+					"#9b1e64",
+					"#ec2d7a",
+					"#cf4813",
+					"#64483d",
+					"#732e12",
+					"#ef632b",
+					"#c8adc4",
+					"#de7897",
+					"#f1c4cd",
+					"#f8ebe6",
+				];
+			},
+		},
+		bgColors: {
+			type: Array,
+			default() {
+				return [
+					"#f7f4ed",
+					"#e4dfd7",
+					"#dad4cb",
+					"#dfecd5",
+					"#cad3c3",
+					"#c6dfc8",
+					"#9abeaf",
+					"#737c7b",
+					"#7cabb1",
+					"#b9dec9",
+					"#93d5dc",
+					"#5e7987",
+					"#c3d7df",
+					"#8fb2c9",
+					"#93b5cf",
+					"#7a7374",
+					"#a7a8bd",
+					"#e0c8d1",
+					"#c8adc4",
+					"#de7897",
+					"#f1c4cd",
+					"#f8ebe6",
+					"#eea2a4",
+					"#cf4813",
+					"#64483d",
+					"#732e12",
+					"#ef632b",
+				];
+			},
+		},
 		i18n: {
 			type: Object,
 			default() {
 				return {
 					editor: {
+						fontFamily: "font family",
+						fontSize: "font size",
+						fontColor: "font color",
+						bgColor: "background color",
+						alignLeft: "align left",
+						alignCenter: "align center",
+						alignRight: "align-right",
+						alignJustify: "align justify",
 						undo: "undo",
 						redo: "redo",
 						bold: "bold",
@@ -333,6 +616,9 @@ export default {
 						deleteCol: "delete column",
 						insertImage: "insert image",
 						insertIframe: "insert iframe",
+						insertVedio: "insert vedio",
+						preview: "preview",
+						edit: "edit",
 					},
 				};
 			},
@@ -343,13 +629,31 @@ export default {
 	},
 	data() {
 		return {
-			showTableFloat: false,
+			isPreview: false,
+			floats: {
+				deleteTable: false,
+				fontColor: false,
+				fontFamily: false,
+				fontSize: false,
+				bkgColor: false,
+				textAlign: false,
+			},
+			showFloatModal: false,
 			linkMenuIsActive: false,
 			linkUrl: "",
+			fontSize: "initial",
+			fontFamily: "initial",
+			fontColor: "#000000",
+			bkgColor: "none",
 			// editor
 			editor: new Editor({
 				autoFocus: true,
 				extensions: [
+					new Paragraph(),
+					new FontSize(),
+					new FontFamily(),
+					new FontColor(),
+					new BkgColor(),
 					new Blockquote(),
 					new BulletList(),
 					new HardBreak(),
@@ -370,6 +674,7 @@ export default {
 					new TableCell(),
 					new TableRow(),
 					new Iframe(),
+					new Vedio(),
 					new Link(),
 				],
 				onUpdate: ({ getHTML }) => {
@@ -383,16 +688,49 @@ export default {
 		mode: {
 			handler() {
 				this.editor.setOptions({
-					editable: this.mode === "VIEW" ? false : true,
+					editable: this.mode === "VIEW" || this.isPreview ? false : true,
 				});
 				this.editor.setContent(this.content);
 			},
 			immediate: true,
 		},
+		isPreview(val) {
+			this.editor.setOptions({
+				editable: !val,
+			});
+		},
 	},
 	methods: {
 		setContent(content) {
 			this.editor.setContent(content);
+		},
+		resetFloats() {
+			Object.keys(this.floats).forEach((key) => {
+				this.floats[key] = false;
+			});
+			this.showFloatModal = false;
+		},
+		toggleFloat(name) {
+			const tmp = this.floats[name];
+			Object.keys(this.floats).forEach((key) => {
+				this.floats[key] = false;
+			});
+			this.floats[name] = !tmp;
+			this.showFloatModal = !tmp;
+		},
+		changeFontSize(commands) {
+			commands.fontSize({ fontSize: this.fontSize });
+		},
+		changeFontFamily(commands) {
+			commands.fontFamily({ fontFamily: this.fontFamily });
+		},
+		changeFontColor(commands, color) {
+			this.fontColor = color;
+			commands.fontColor({ fontColor: this.fontColor });
+		},
+		changeBkgColor(commands, color) {
+			this.bkgColor = color;
+			commands.bkgColor({ bkgColor: this.bkgColor });
 		},
 		handleEditorDrop(e) {
 			e.preventDefault();
@@ -425,17 +763,30 @@ export default {
 				reader.readAsDataURL(file);
 			}
 		},
-		toInsertIframe() {
+		toInsertURL(type) {
 			if (this.$prompt) {
 				this.$prompt("Input URL", "Iframe", {
 					confirmButtonText: "Confirm",
 					cancelButtonText: "Close",
 				}).then(({ value }) => {
-					if (url) this.insertIframe(value);
+					this.toInsertEmbed(type, value);
 				});
 			} else {
-				let url = prompt("Input URL");
-				if (url) this.insertIframe(url);
+				let value = prompt("Input URL");
+				this.toInsertEmbed(type, value);
+			}
+		},
+		toInsertEmbed(type, url) {
+			if (!url) return;
+			switch (type) {
+				case "iframe":
+					this.insertIframe(url);
+					break;
+				case "video":
+					this.insertVideo(url);
+					break;
+				default:
+					break;
 			}
 		},
 		// 自定义插入
@@ -454,6 +805,16 @@ export default {
 				width = width + "px";
 			}
 			this.editor.commands.iframe({
+				src: src,
+				height: height ? height + "px" : null,
+				width: width ? width : null,
+			});
+		},
+		insertVideo(src, height = 500, width = "100%") {
+			if (typeof width === "number") {
+				width = width + "px";
+			}
+			this.editor.commands.video({
 				src: src,
 				height: height ? height + "px" : null,
 				width: width ? width : null,
@@ -482,12 +843,34 @@ p {
 	display: flex;
 	flex-direction: column;
 	position: relative;
+	.float-modal {
+		position: fixed;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		z-index: 10;
+	}
+	.mode-edit {
+		position: absolute;
+		right: 15px;
+		top: 10px;
+		width: 25px;
+		height: 25px;
+		z-index: 200;
+		padding: 5px;
+		cursor: pointer;
+		.svg-icon {
+			width: 100%;
+			height: 100%;
+		}
+	}
 	.editor-tools {
 		position: sticky;
 		top: -25px;
 		padding: 0 20px;
 		background-color: #fefefe;
-		z-index: 9;
+		z-index: 10;
 		button {
 			outline: none;
 		}
@@ -533,7 +916,7 @@ p {
 		border: none;
 		padding: 2px 4px;
 		background-color: #fefefe;
-		margin: 0 4px;
+		margin: 4px;
 		&:hover {
 			background-color: $grey;
 		}
@@ -542,34 +925,68 @@ p {
 		background-color: $grey;
 	}
 
-	.table-delete {
+	.float-parent {
 		position: relative;
-		> div {
-			margin: 0;
+	}
+
+	.float {
+		position: absolute;
+		top: 40px;
+		left: 0;
+		z-index: 30;
+		border-radius: 5px;
+		background-color: #fefefe;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+		overflow-x: hidden;
+		overflow-y: auto;
+		border-top: 2px solid rgb(201, 201, 201);
+	}
+	.select-menu {
+		min-width: 100px;
+		text-align: left;
+		font-size: 18px;
+		padding: 10px 0;
+		.menu-item {
+			padding: 5px 10px;
+			&:hover {
+				background-color: $grey;
+			}
 		}
-		> .float {
-			position: absolute;
-			width: max-content;
-			z-index: 10;
-			padding: 10px;
-			border-radius: 5px;
-			top: 40px;
-			left: 50%;
-			transform: translateX(-50%);
-			background-color: #fefefe;
-			box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-			button {
-				width: 100%;
-				text-align: left;
-				padding: 4px 8px;
-				display: block;
-			}
-			.desc {
-				font-family: "Microsoft YaHei";
-				font-size: 16px;
-				font-weight: lighter;
-				margin-left: 3px;
-			}
+	}
+
+	.table-delete {
+		width: max-content;
+		.desc {
+			margin-left: 10px;
+			vertical-align: super;
+		}
+	}
+}
+
+.color-panel {
+	display: flex;
+	flex-wrap: wrap;
+	width: 220px;
+	max-height: 500px;
+	&::-webkit-scrollbar {
+		width: 6px;
+	}
+	&::-webkit-scrollbar-thumb {
+		background-color: rgb(182, 182, 182);
+		border-radius: 2px;
+	}
+	.color-piece {
+		width: 20px;
+		height: 20px;
+		border-radius: 3px;
+		margin: 5px;
+		.svg-icon {
+			width: 12px;
+			height: 20px;
+			vertical-align: middle;
+		}
+		&:hover {
+			transform: translateY(-2px);
 		}
 	}
 }
@@ -578,25 +995,23 @@ p {
 	flex-grow: 1;
 	display: flex;
 	flex-direction: column;
-	overflow-y: auto;
-	padding: 20px 40px;
+	overflow: hidden;
+	padding: 10px 0;
 	word-break: break-all;
 	font-size: 17px !important;
 	.ProseMirror {
 		outline: none !important;
-	}
-	&::-webkit-scrollbar {
-		width: 6px;
-	}
-	&::-webkit-scrollbar-thumb {
-		background-color: rgb(218, 218, 218);
-		border-radius: 2px;
-	}
-	> div {
 		padding: 10px 20px;
-		border-radius: 6px;
 		min-height: 500px;
-		flex-grow: 1;
+		flex: 1;
+		overflow-y: auto;
+		&::-webkit-scrollbar {
+			width: 6px;
+		}
+		&::-webkit-scrollbar-thumb {
+			background-color: rgb(218, 218, 218);
+			border-radius: 2px;
+		}
 	}
 	.title {
 		border-bottom: 2px solid rgb(36, 27, 27);

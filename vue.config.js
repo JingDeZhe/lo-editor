@@ -20,7 +20,7 @@ module.exports = {
       .rule('svg-sprite-loader')
       .test(/\.svg$/)
       .include
-      .add(resolve('examples/icons'))
+      .add(resolve('packages/icons'))
       .end()
       .use('svg-sprite-loader')
       .loader('svg-sprite-loader')
