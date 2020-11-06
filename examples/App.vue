@@ -3,7 +3,6 @@
 		<lo-editor
 			v-model="content"
 			class="lo-editor"
-			:fontColors="fontColors"
 		></lo-editor>
 	</div>
 </template>
