@@ -71,11 +71,7 @@ export default class Image extends Node {
               if (item.type.indexOf("image") !== -1) {
                 const file = item.getAsFile();
                 if (file) {
-                  const reader = new FileReader();
-                  reader.onload = function (evt) {
-                    that.insertImage(evt.target.result);
-                  };
-                  reader.readAsDataURL(file);
+                  that.$emit("insertImage", file, that.insertImage.bind(that));
                 }
               }
             })
@@ -102,18 +98,23 @@ export default class Image extends Node {
 
               const { schema } = view.state
               const coordinates = view.posAtCoords({ left: event.clientX, top: event.clientY })
+              const that = window.editor;
+
+              function insertImage(src, height, width) {
+                if (typeof width === "number") {
+                  width = width + "px";
+                }
+                const node = schema.nodes.image.create({
+                  src: src,
+                  height: height ? height + "px" : null,
+                  width: width ? width : null,
+                })
+                const transaction = view.state.tr.insert(coordinates.pos, node)
+                view.dispatch(transaction)
+              }
 
               images.forEach(image => {
-                const reader = new FileReader()
-
-                reader.onload = readerEvent => {
-                  const node = schema.nodes.image.create({
-                    src: readerEvent.target.result,
-                  })
-                  const transaction = view.state.tr.insert(coordinates.pos, node)
-                  view.dispatch(transaction)
-                }
-                reader.readAsDataURL(image)
+                that.$emit("insertImage", image, insertImage.bind(that));
               })
             },
           },

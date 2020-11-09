@@ -157,7 +157,7 @@
 							'is-active': isActive.paragraph({ textAlign: 'left' }),
 						}"
 						@click="commands.paragraph({ textAlign: 'left' })"
-					> 
+					>
 						<abbr :title="i18n.editor.alignLeft">
 							<icon icon-class="align-left"></icon>
 						</abbr>
@@ -381,6 +381,11 @@
 							<icon icon-class="vedio"></icon>
 						</abbr>
 					</button>
+          <label for="vedio-upload">
+						<abbr :title="i18n.editor.insertVedio">
+							<icon icon-class="vedio-local" />
+						</abbr>
+					</label>
 					<div class="divide"></div>
 					<button class="menubar__button" @click="isPreview = true">
 						<abbr :title="i18n.editor.preview">
@@ -392,6 +397,13 @@
 						accept=".png, .jpg, .jpeg"
 						id="image-upload"
 						@change="insertLocalImage()"
+						hidden
+					/>
+					<input
+						type="file"
+						accept=".mp4, .ogg, .webm"
+						id="vedio-upload"
+						@change="insertLocalVedio()"
 						hidden
 					/>
 				</div>
@@ -755,12 +767,17 @@ export default {
 			let input = document.querySelector("#image-upload");
 			let file = input.files[0];
 			if (file) {
-				const reader = new FileReader();
-				reader.onload = function (evt) {
-					that.insertImage(evt.target.result);
-					input.value = null;
-				};
-				reader.readAsDataURL(file);
+				this.$emit("insertImage", file, this.insertImage.bind(this));
+				input.value = "";
+			}
+		},
+		insertLocalVedio() {
+			const that = this;
+			let input = document.querySelector("#vedio-upload");
+			let file = input.files[0];
+			if (file) {
+				this.$emit("insertVedio", file, this.insertVideo.bind(this));
+				input.value = "";
 			}
 		},
 		toInsertURL(type) {

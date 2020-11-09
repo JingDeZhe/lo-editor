@@ -3,6 +3,8 @@
 		<lo-editor
 			v-model="content"
 			class="lo-editor"
+			@insertImage="insertImage"
+			@insertVedio="insertVedio"
 		></lo-editor>
 	</div>
 </template>
@@ -14,8 +16,31 @@ export default {
 		return {
 			content: "",
 			fontSizes: ["10px", "20px", "30px", "40px", "50px"],
-			fontColors: ["#0b1013","#0f2540","#08192d","#005caf","#0b346e","#7b90d2"],
+			fontColors: [
+				"#0b1013",
+				"#0f2540",
+				"#08192d",
+				"#005caf",
+				"#0b346e",
+				"#7b90d2",
+			],
 		};
+	},
+	methods: {
+		insertImage(file, setImage) {
+			// 模拟后台返回图片链接
+			// setImage(url, height, width): 在编辑器内部插入href为url的图片，后面两个参数可选
+			const reader = new FileReader();
+			reader.onload = function (evt) {
+				setImage(evt.target.result);
+			};
+			reader.readAsDataURL(file);
+		},
+		insertVedio(file, setVedio) {
+			// 与Image一样
+			// 模拟后台输入
+			setVedio("https://www.w3school.com.cn/i/movie.ogg");
+		},
 	},
 };
 </script>
